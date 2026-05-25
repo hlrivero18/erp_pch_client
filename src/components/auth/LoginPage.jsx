@@ -1,43 +1,59 @@
-
-import React, { useState } from "react";
-import { User } from "@/api/entities";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart3, LogIn, UtensilsCrossed, Users, TrendingUp, Target, FileText } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useNavigate } from "react-router-dom";
+import { login } from "@/service/auth";
+import axios from "axios";
+import { useToast } from "../ui/use-toast";
 
-export default function LoginPage() {
+export default function LoginPage(props) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] =  useState({
-    user: "",
-    pass: ""
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
   })
-  const navigate = useNavigate()
+  const [error, setError] = useState("")
 
-  const handleLogin = () => {
+  const navigate = useNavigate()
+  const checkAuth = props.checkAuth
+  const { toast } = useToast()
+
+  const handleLogin = async () => {
+    // e.preventDefault()
     setIsLoading(true);
-    // Esta función redirige al usuario al sistema de login seguro de la plataforma
-      if(User.user == formData.user && User.password == formData.pass){
-        localStorage.setItem('auth', JSON.stringify({...formData, "pass": "dsvbu"}))
-        alert("logueado")
-        window.location.reload();
+    try {
+      await login(formData.email, formData.password)
+      checkAuth()
+      navigate('/dashboard')
+    } catch (e) {
+      setIsLoading(false)
+      if (axios.isAxiosError(e)) {
+
+        const mensajeDeError = e.response?.data?.errorCode ?? 'Error al iniciar sesión';
+
+        setError(mensajeDeError);
+
+        toast({
+          variant: "destructive",
+          title: "Error al iniciar sesión",
+          description: mensajeDeError,
+          duration: 3000
+        })
       }
-      else{
-          alert("contraseña o usuario incorrecto")
-          setIsLoading(false);
-      }
+    }
   };
 
-  const manejologin = (e) => {
-    const {value, name} = e.target;
+  const handlerInput = (e) => {
+    const { value, name } = e.target;
 
-    setFormData((prevData)=>({
+    setFormData((prevData) => ({
       ...prevData,
       [name]: value
     }))
-    
+
   }
 
   return (
@@ -56,7 +72,7 @@ export default function LoginPage() {
             {/* Logo y Título Principal */}
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-2xl">
-                <UtensilsCrossed  className="w-8 h-8" />
+                <UtensilsCrossed className="w-8 h-8" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold tracking-tight">El Punto Chévere</h1>
@@ -69,46 +85,11 @@ export default function LoginPage() {
                 Sistema de Gestión y Visualización de Indicadores
               </h2>
               <p className="text-gray-700 text-lg leading-relaxed">
-                Plataforma integral para el monitoreo, análisis y reporte de indicadores 
+                Plataforma integral para el monitoreo, análisis y reporte de indicadores
                 de rendimiento comercial.
               </p>
             </div>
           </div>
-
-          {/* Features Grid */}
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-start gap-3 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-              <TrendingUp className="w-6 h-6 text-blue-300 mt-1" />
-              <div>
-                <h3 className="font-semibold text-white">Indicadores Dinámicos</h3>
-                <p className="text-blue-200 text-sm">Monitoreo en tiempo real con alertas automáticas</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-              <Target className="w-6 h-6 text-blue-300 mt-1" />
-              <div>
-                <h3 className="font-semibold text-white">Gestión de Metas</h3>
-                <p className="text-blue-200 text-sm">Definición y seguimiento de objetivos institucionales</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-              <FileText className="w-6 h-6 text-blue-300 mt-1" />
-              <div>
-                <h3 className="font-semibold text-white">Reportes Avanzados</h3>
-                <p className="text-blue-200 text-sm">Informes personalizables y exportación a PDF</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-              <Users className="w-6 h-6 text-blue-300 mt-1" />
-              <div>
-                <h3 className="font-semibold text-white">Control de Acceso</h3>
-                <p className="text-blue-200 text-sm">Roles y permisos granulares por área</p>
-              </div>
-            </div>
-          </div> */}
         </div>
 
         {/* Right Side - Login Card */}
@@ -116,7 +97,7 @@ export default function LoginPage() {
           <Card className="w-full max-w-md shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
             <CardHeader className="text-center pb-6 space-y-4">
               <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center mx-auto shadow-2xl">
-                <UtensilsCrossed  className="w-8 h-8" />
+                <UtensilsCrossed className="w-8 h-8" />
               </div>
               <div>
                 <CardTitle className="text-2xl font-bold text-slate-900">
@@ -127,41 +108,24 @@ export default function LoginPage() {
                 </p>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-6">
-              {/* Security Features */}
-              {/* <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Acceso Seguro</p>
-                    <p className="text-xs text-slate-600">Autenticación institucional protegida</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                  <Users className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Roles Diferenciados</p>
-                    <p className="text-xs text-slate-600">Permisos según su área de trabajo</p>
-                  </div>
-                </div>
-              </div> */}
 
               {/* Login Button */}
               <div className="space-y-4">
                 <Label>
                   Usuario
                 </Label>
-                <Input value = {formData.user} onChange = {manejologin} name = "user">
+                <Input value={formData.email} onChange={handlerInput} name="email">
                 </Input>
 
                 <Label>
                   Contraseña
-                </Label>                
-                <Input type = "password" value = {formData.pass} onChange = {manejologin} name = "pass">
+                </Label>
+                <Input type="password" value={formData.password} onChange={handlerInput} name="password">
                 </Input>
                 <Button
+                  type="button"
                   onClick={handleLogin}
                   disabled={isLoading}
                   className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 py-3 text-lg font-semibold shadow-lg"
@@ -185,40 +149,6 @@ export default function LoginPage() {
                   </p>
                 </div>
               </div>
-
-              {/* Additional Info */}
-              {/* <div className="pt-4 border-t border-slate-100">
-                <div className="text-center space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-slate-700 mb-2">
-                      ¿Necesita acceso al sistema?
-                    </p>
-                    <div className="text-xs text-slate-500 space-y-1">
-                      <p>• Contacte al administrador de su área para solicitar una invitación</p>
-                      <p>• Si tiene email institucional, puede crear una cuenta Google gratuita</p>
-                      <p>• Para soporte técnico: contacte a IT de SEDRONAR</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <p className="text-xs text-amber-800 font-medium">
-                      💡 ¿No tiene cuenta Google?
-                    </p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      Puede crear una cuenta Google gratuita usando su email institucional sin cambiar su dirección de correo actual.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-xs text-blue-800 font-medium">
-                      📞 Soporte Técnico
-                    </p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Para asistencia con el acceso, contacte a la Mesa de Ayuda de SEDRONAR
-                    </p>
-                  </div>
-                </div>
-              </div> */}
             </CardContent>
           </Card>
         </div>

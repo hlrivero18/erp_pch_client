@@ -13,7 +13,10 @@ import {
   LogOut,
   Menu,
   Bell,
-  Search
+  Search,
+  UtensilsIcon,
+  LayoutDashboard,
+  UtensilsCrossed
 } from "lucide-react";
 import {
   Sidebar,
@@ -39,76 +42,73 @@ const navigationItems = [
   {
     title: "Dashboard",
     url: createPageUrl("Dashboard"),
-    icon: BarChart3,
+    icon: LayoutDashboard,
     description: "Vista general"
   },
   {
-    title: "Indicadores",
+    title: "Menu",
     url: createPageUrl("Indicadores"),
-    icon: TrendingUp,
+    icon: UtensilsIcon,
     description: "Gestión de indicadores"
   },
   {
-    title: "Mediciones",
+    title: "Pedidos",
     url: createPageUrl("Mediciones"),
     icon: FileText,
     description: "Ingreso de datos"
   },
-  {
-    title: "Metas",
-    url: createPageUrl("Metas"),
-    icon: Target,
-    description: "Objetivos y metas"
-  },
-  {
-    title: "Reportes",
-    url: createPageUrl("Reportes"),
-    icon: FileText,
-    description: "Informes y análisis"
-  },
-  {
-    title: "Usuarios",
-    url: createPageUrl("Usuarios"),
-    icon: Users,
-    description: "Gestión de usuarios"
-  }
+  // {
+  //   title: "Metas",
+  //   url: createPageUrl("Metas"),
+  //   icon: Target,
+  //   description: "Objetivos y metas"
+  // },
+  // {
+  //   title: "Reportes",
+  //   url: createPageUrl("Reportes"),
+  //   icon: FileText,
+  //   description: "Informes y análisis"
+  // },
+  // {
+  //   title: "Usuarios",
+  //   url: createPageUrl("Usuarios"),
+  //   icon: Users,
+  //   description: "Gestión de usuarios"
+  // }
 ];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState(3);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem("token"); 
+  });
+
+  const [isLoading, setIsLoading] = useState(() => {
+    return !localStorage.getItem("token"); 
+  });
 
   useEffect(() => {
     checkAuth();
-  }, []);
+  }, [location.pathname]); 
 
   const checkAuth = async () => {
-    setIsLoading(true);
-    const auth = localStorage.getItem("auth")
-    if(auth){
-      setUser(JSON.parse(auth))
-      setIsAuthenticated(true)
-    }else{
-      setIsAuthenticated(false)
-      setUser(null)
+    const auth = localStorage.getItem("token");
+    if (auth) {
+      setIsAuthenticated(true);
+      // const userData = await api.get('/auth/me'); setUser(userData);
+    } else {
+      setIsAuthenticated(false);
+      setUser(null);
     }
-    // try {
-    //   const currentUser = await User.me();
-    //   setUser(currentUser);
-    //   setIsAuthenticated(true);
-    // } catch (error) {
-    //   setIsAuthenticated(false);
-    //   setUser(null);
-    // }
     setIsLoading(false);
   };
 
   const handleLogout = async () => {
     try {
-      await localStorage.removeItem("auth");
+      await localStorage.removeItem("token");
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {
@@ -123,7 +123,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Show login page if not authenticated
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return <LoginPage checkAuth={checkAuth} />;
   }
 
   return (
@@ -132,16 +132,16 @@ export default function Layout({ children, currentPageName }) {
         <Sidebar className="border-r border-slate-200 bg-white/95 backdrop-blur-sm">
           <SidebarHeader className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
-                <BarChart3 className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-2xl">
+                <UtensilsCrossed className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 text-lg">SEDRONAR</h2>
-                <p className="text-xs text-slate-500">Sistema de Indicadores</p>
+                <h2 className="font-bold text-slate-900 text-lg">El Punto Chévere</h2>
+                <p className="text-xs text-slate-500">Sistema de registro</p>
               </div>
             </div>
           </SidebarHeader>
-          
+
           <SidebarContent className="p-4">
             <SidebarGroup>
               <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-3">
@@ -151,17 +151,16 @@ export default function Layout({ children, currentPageName }) {
                 <SidebarMenu className="space-y-2">
                   {navigationItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`group hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg px-3 py-3 ${
-                          location.pathname === item.url ? 'bg-blue-50 text-blue-700 shadow-sm' : 'text-slate-700'
-                        }`}
+                      <SidebarMenuButton
+                        asChild
+                        className={`group h-[50px] hover:bg-yellow-50 hover:text-yellow-700 transition-all duration-200 rounded-lg px-3 py-3 ${location.pathname === item.url ? 'bg-yellow-50 text-yellow-700 shadow-sm' : 'text-slate-700'
+                          }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3">
                           <item.icon className="w-5 h-5" />
                           <div className="flex-1">
                             <div className="font-medium">{item.title}</div>
-                            <div className="text-xs text-slate-500 group-hover:text-blue-600">
+                            <div className="text-xs text-slate-500 group-hover:text-yellow-600">
                               {item.description}
                             </div>
                           </div>
@@ -243,7 +242,7 @@ export default function Layout({ children, currentPageName }) {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="w-5 h-5" />
