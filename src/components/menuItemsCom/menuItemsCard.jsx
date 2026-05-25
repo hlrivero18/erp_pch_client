@@ -12,7 +12,7 @@ import {
   Target
 } from "lucide-react";
 
-export default function IndicatorCard({ indicator, onEdit, onDelete }) {
+export default function MenuItemsCard({ menuItem, onEdit, onDelete }) {
   const getUnitDisplay = (unit, customUnit) => {
     switch (unit) {
       case "percentage": return "%";
@@ -51,7 +51,7 @@ export default function IndicatorCard({ indicator, onEdit, onDelete }) {
     return grade === "higher_better" ? TrendingUp : TrendingDown;
   };
 
-  const ExecutionIcon = getExecutionGradeIcon(indicator.execution_grade);
+  const ExecutionIcon = getExecutionGradeIcon(menuItem.execution_grade);
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300 bg-white/70 backdrop-blur-sm border-slate-200">
@@ -60,24 +60,24 @@ export default function IndicatorCard({ indicator, onEdit, onDelete }) {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-lg font-semibold text-slate-900">
-                {indicator.name}
+                {menuItem.name}
               </h3>
-              <Badge 
-                variant={indicator.status === "active" ? "default" : "secondary"}
-                className={indicator.status === "active" ? "bg-green-100 text-green-800" : ""}
+              {/* <Badge 
+                variant={menuItem.status === "active" ? "default" : "secondary"}
+                className={menuItem.status === "active" ? "bg-green-100 text-green-800" : ""}
               >
-                {indicator.status === "active" ? "Activo" : "Inactivo"}
-              </Badge>
+                {menuItem.status === "active" ? "Activo" : "Inactivo"}
+              </Badge> */}
             </div>
             <p className="text-sm text-slate-600 line-clamp-2">
-              {indicator.description}
+              {menuItem.description}
             </p>
           </div>
           <div className="flex gap-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onEdit(indicator)}
+              onClick={() => onEdit(menuItem)}
               className="hover:bg-blue-50 hover:text-blue-600"
             >
               <Edit className="w-4 h-4" />
@@ -85,7 +85,7 @@ export default function IndicatorCard({ indicator, onEdit, onDelete }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onDelete(indicator.id)}
+              onClick={() => onDelete(menuItem.id)}
               className="hover:bg-red-50 hover:text-red-600"
             >
               <Trash2 className="w-4 h-4" />
@@ -95,23 +95,23 @@ export default function IndicatorCard({ indicator, onEdit, onDelete }) {
       </CardHeader>
       
       <CardContent className="pt-0">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-slate-500" />
             <div>
               <p className="text-xs text-slate-500">Unidad</p>
               <p className="text-sm font-medium">
-                {getUnitDisplay(indicator.unit, indicator.custom_unit)}
+                {getUnitDisplay(menuItem.unit, menuItem.custom_unit)}
               </p>
             </div>
           </div>
-          
-          <div className="flex items-center gap-2">
+           */}
+          {/* <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-slate-500" />
             <div>
               <p className="text-xs text-slate-500">Frecuencia</p>
               <p className="text-sm font-medium">
-                {getFrequencyDisplay(indicator.frequency)}
+                {getFrequencyDisplay(menuItem.frequency)}
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function IndicatorCard({ indicator, onEdit, onDelete }) {
             <div>
               <p className="text-xs text-slate-500">Tipo</p>
               <p className="text-sm font-medium">
-                {getTypeDisplay(indicator.type)}
+                {getTypeDisplay(menuItem.type)}
               </p>
             </div>
           </div>
@@ -131,29 +131,29 @@ export default function IndicatorCard({ indicator, onEdit, onDelete }) {
             <div>
               <p className="text-xs text-slate-500">Ejecución</p>
               <p className="text-sm font-medium">
-                {indicator.execution_grade === "higher_better" ? "↑ Mejor" : "↓ Mejor"}
+                {menuItem.execution_grade === "higher_better" ? "↑ Mejor" : "↓ Mejor"}
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="flex justify-between items-center pt-3 border-t border-slate-200">
-          <div className="flex gap-2">
-            {indicator.category && (
+          {/* <div className="flex gap-2">
+            {menuItem.category && (
               <Badge variant="outline" className="text-xs">
-                {indicator.category}
+                {menuItem.category}
               </Badge>
             )}
-            {indicator.area && (
+            {menuItem.area && (
               <Badge variant="outline" className="text-xs">
-                {indicator.area}
+                {menuItem.area}
               </Badge>
             )}
-          </div>
+          </div> */}
           
-          {indicator.tolerance_percentage && (
-            <div className="text-xs text-slate-500">
-              Tolerancia: ±{indicator.tolerance_percentage}%
+          {menuItem.price && (
+            <div className="text-slate-500">
+              Precio: {menuItem.price}$
             </div>
           )}
         </div>

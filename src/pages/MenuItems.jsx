@@ -15,13 +15,14 @@ import {
   AlertTriangle
 } from "lucide-react";
 
-import IndicatorForm from "../components/indicators/IndicatorForm";
-import IndicatorCard from "../components/indicators/IndicatorCard";
-import FilterPanel from "../components/indicators/FilterPanel";
+import MenuItemsForm from "../components/menuItemsCom/menuItemsForm";
+import MenuItemsCard from "../components/menuItemsCom/menuItemsCard";
+import FilterPanel from "../components/menuItemsCom/FilterPanel";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import { getMenuItems } from "@/service/menu-items";
 
-export default function Indicadores() {
-  const [indicators, setIndicators] = useState([]);
+export default function MenuItems() {
+  const [menuItems, setMenuItems] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingIndicator, setEditingIndicator] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,77 +34,91 @@ export default function Indicadores() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
 
   useEffect(() => {
-    //loadIndicators();
-    setLoading(false)
+    loadMenuItems();
   }, []);
 
-  const loadIndicators = async () => {
+  const loadMenuItems = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // Check if user is authenticated first
-      await localStorage.getItem("auth");
-      
-      //const data = await Indicator.list("-created_date");
-      //setIndicators(data);
-    } catch (error) {
-      console.error("Error loading indicators:", error);
-      setError("Error al cargar los indicadores");
+      const { data } = await getMenuItems(page, limit)
+      if(data.page > 1){
+        setPage(page + 1);
+      }
+      setMenuItems(data?.data)
+
+    } catch (e) {
+      setLoading(false)
+      if (axios.isAxiosError(e)) {
+
+        const mensajeDeError = e.response?.data?.errorCode ?? `Error al crear ${formData.name}`;
+
+        setError(mensajeDeError);
+
+        toast({
+          variant: "destructive",
+          title: "Error al crear el menu-item",
+          description: mensajeDeError,
+          duration: 3000
+        })
+      }
     }
     
     setLoading(false);
   };
 
   const handleSubmit = async (indicatorData) => {
-    try {
-      if (editingIndicator) {
-        await Indicator.update(editingIndicator.id, indicatorData);
-      } else {
-        await Indicator.create(indicatorData);
-      }
-      setShowForm(false);
-      setEditingIndicator(null);
-      loadIndicators();
-    } catch (error) {
-      console.error("Error saving indicator:", error);
-      setError("Error al guardar el indicador");
-    }
+    // try {
+    //   if (editingIndicator) {
+    //     await Indicator.update(editingIndicator.id, indicatorData);
+    //   } else {
+    //     await Indicator.create(indicatorData);
+    //   }
+    //   setShowForm(false);
+    //   setEditingIndicator(null);
+    //   loadMenuItems();
+    // } catch (error) {
+    //   console.error("Error saving indicator:", error);
+    //   setError("Error al guardar el indicador");
+    // }
   };
 
   const handleEdit = (indicator) => {
-    setEditingIndicator(indicator);
-    setShowForm(true);
+    // setEditingIndicator(indicator);
+    // setShowForm(true);
   };
 
   const handleDelete = async (indicatorId) => {
-    if (window.confirm("¿Está seguro de eliminar este indicador?")) {
-      try {
-        await Indicator.delete(indicatorId);
-        loadIndicators();
-      } catch (error) {
-        console.error("Error deleting indicator:", error);
-        setError("Error al eliminar el indicador");
-      }
-    }
+    // if (window.confirm("¿Está seguro de eliminar este indicador?")) {
+    //   try {
+    //     await Indicator.delete(indicatorId);
+    //     loadMenuItems();
+    //   } catch (error) {
+    //     console.error("Error deleting indicator:", error);
+    //     setError("Error al eliminar el indicador");
+    //   }
+    // }
   };
 
-  const filteredIndicators = indicators.filter(indicator => {
-    const matchesSearch = indicator.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         indicator.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // const filteredIndicators = menuItems.filter(mi => {
+  //   const matchesSearch = mi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //                        mi.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = !filters.category || indicator.category === filters.category;
-    const matchesType = !filters.type || indicator.type === filters.type;
-    const matchesStatus = !filters.status || indicator.status === filters.status;
-    const matchesArea = !filters.area || indicator.area === filters.area;
+  //   const matchesCategory = !filters.category || mi.category === filters.category;
+  //   const matchesType = !filters.type || mi.type === filters.type;
+  //   const matchesStatus = !filters.status || mi.status === filters.status;
+  //   const matchesArea = !filters.area || mi.area === filters.area;
     
-    return matchesSearch && matchesCategory && matchesType && matchesStatus && matchesArea;
-  });
+  //   return matchesSearch && matchesCategory && matchesType && matchesStatus && matchesArea;
+  // });
 
   if (loading) {
-    return <LoadingSpinner message="Cargando indicadores..." />;
+    return <LoadingSpinner message="Cargando menu-items..." />;
   }
 
   if (error) {
@@ -114,10 +129,10 @@ export default function Indicadores() {
             <CardContent className="p-8">
               <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                Error al cargar los indicadores
+                Error al cargar los menu-items
               </h3>
               <p className="text-slate-600 mb-4">{error}</p>
-              <Button onClick={loadIndicators} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={loadMenuItems} className="bg-blue-600 hover:bg-blue-700">
                 Reintentar
               </Button>
             </CardContent>
@@ -133,17 +148,17 @@ export default function Indicadores() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Indicadores</h1>
+            <h1 className="text-3xl font-bold text-slate-900">Menu</h1>
             <p className="text-slate-600 mt-1">
-              Gestión y configuración de indicadores
+              Gestión y configuración de Menu-Items
             </p>
           </div>
           <Button 
             onClick={() => setShowForm(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-yellow-500 hover:bg-yellow-600"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Nuevo Indicador
+            Nuevo Menu-Item
           </Button>
         </div>
 
@@ -184,12 +199,12 @@ export default function Indicadores() {
 
         {/* Indicators Grid */}
         <div className="grid gap-6">
-          {filteredIndicators.length === 0 ? (
+          {menuItems.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <BarChart3 className="w-16 h-16 mx-auto mb-4 text-slate-300" />
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  No se encontraron indicadores
+                  No se encontraron menuItems
                 </h3>
                 <p className="text-slate-600 mb-4">
                   {searchTerm || Object.values(filters).some(f => f) 
@@ -199,15 +214,16 @@ export default function Indicadores() {
                 </p>
                 <Button onClick={() => setShowForm(true)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Crear Indicador
+                  Crear Menu-Item
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            filteredIndicators.map((indicator) => (
-              <IndicatorCard
-                key={indicator.id}
-                indicator={indicator}
+            menuItems.map((mi) => (
+              // <p>{mi.name}</p>
+              <MenuItemsCard
+                key={mi.id}
+                menuItem={mi}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -219,7 +235,7 @@ export default function Indicadores() {
         {showForm && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <IndicatorForm
+              <MenuItemsForm
                 indicator={editingIndicator}
                 onSubmit={handleSubmit}
                 onCancel={() => {

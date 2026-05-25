@@ -6,25 +6,69 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X, Save } from "lucide-react";
+import { createMenuItem } from "@/service/menu-items";
+import { useToast } from "../ui/use-toast";
 
-export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
+export default function MenuItemsForm({ indicator, onSubmit, onCancel }) {
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState(indicator || {
     name: "",
-    description: "",
-    unit: "units",
-    custom_unit: "",
-    frequency: "monthly",
-    type: "performance",
-    execution_grade: "higher_better",
-    category: "",
-    area: "",
-    status: "active",
-    tolerance_percentage: 5
+    descripcion: "",
+    price: "",
+    createdById: "fa817517-5d80-45fd-9e9b-53c87f1fdc0d"
+    // unit: "units",
+    // custom_unit: "",
+    // frequency: "monthly",
+    // type: "performance",
+    // execution_grade: "higher_better",
+    // category: "",
+    // area: "",
+    // status: "active",
   });
 
-  const handleSubmit = (e) => {
+  const resetState = () => {
+    setFormData({
+      name: "",
+      descripcion: "",
+      price: "",
+      createdById: "fa817517-5d80-45fd-9e9b-53c87f1fdc0d"
+    })
+  }
+
+  const { toast } = useToast();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsLoading(true)
+    try {
+      const data = await createMenuItem(formData)
+      setIsLoading(false)
+      onCancel()
+      resetState()
+      toast({
+        variant: "success",
+        title: "Menu-item creado con exito",
+        description: `Se registro el menu-item ${formData.name}`,
+        duration: 3000
+      })
+
+    } catch (e) {
+      setIsLoading(false)
+      if (axios.isAxiosError(e)) {
+
+        const mensajeDeError = e.response?.data?.errorCode ?? `Error al crear ${formData.name}`;
+
+        setError(mensajeDeError);
+
+        toast({
+          variant: "destructive",
+          title: "Error al crear el menu-item",
+          description: mensajeDeError,
+          duration: 3000
+        })
+      }
+    }
+
   };
 
   const handleChange = (field, value) => {
@@ -39,30 +83,30 @@ export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
       <CardHeader className="border-b">
         <div className="flex justify-between items-center">
           <CardTitle className="text-xl">
-            {indicator ? "Editar Indicador" : "Nuevo Indicador"}
+            {indicator ? "Editar Menu-item" : "Nuevo Menu-Item"}
           </CardTitle>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="w-4 h-4" />
           </Button>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre del Indicador *</Label>
+              <Label htmlFor="name">Nombre del Menu-item *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="Ej: Efectividad Operacional"
+                placeholder="Ej: Pabellón"
                 required
               />
             </div>
-            
-            <div className="space-y-2">
+
+            {/* <div className="space-y-2">
               <Label htmlFor="category">Categoría</Label>
               <Input
                 id="category"
@@ -70,23 +114,22 @@ export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
                 onChange={(e) => handleChange("category", e.target.value)}
                 placeholder="Ej: Operaciones, Financiero"
               />
-            </div>
+            </div> */}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descripción *</Label>
+            <Label htmlFor="descripcion">Descripción </Label>
             <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Explique el propósito del indicador y cómo se calcula"
+              id="descripcion"
+              value={formData.descripcion}
+              onChange={(e) => handleChange("descripcion", e.target.value)}
+              placeholder="Breve descripción del menu-item"
               className="h-24"
-              required
             />
           </div>
 
           {/* Configuration */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="unit">Unidad de Medida *</Label>
               <Select value={formData.unit} onValueChange={(value) => handleChange("unit", value)}>
@@ -131,9 +174,9 @@ export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </div> */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="type">Tipo de Indicador *</Label>
               <Select value={formData.type} onValueChange={(value) => handleChange("type", value)}>
@@ -162,10 +205,10 @@ export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </div> */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+            {/* <div className="space-y-2">
               <Label htmlFor="area">Área/Departamento</Label>
               <Input
                 id="area"
@@ -173,23 +216,23 @@ export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
                 onChange={(e) => handleChange("area", e.target.value)}
                 placeholder="Ej: Operaciones, Prevención"
               />
-            </div>
+            </div> */}
 
             <div className="space-y-2">
-              <Label htmlFor="tolerance_percentage">Tolerancia (%)</Label>
+              <Label htmlFor="price">Precio (ARG)</Label>
               <Input
-                id="tolerance_percentage"
+                id="price"
                 type="number"
                 min="0"
-                max="100"
-                value={formData.tolerance_percentage}
-                onChange={(e) => handleChange("tolerance_percentage", parseFloat(e.target.value))}
-                placeholder="5"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => handleChange("price", parseFloat(e.target.value))}
+                placeholder="Ejem. 23000"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="status">Estado</Label>
             <Select value={formData.status} onValueChange={(value) => handleChange("status", value)}>
               <SelectTrigger>
@@ -200,16 +243,16 @@ export default function IndicatorForm({ indicator, onSubmit, onCancel }) {
                 <SelectItem value="inactive">Inactivo</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" className="bg-yellow-500 hover:bg-yellow-600">
               <Save className="w-4 h-4 mr-2" />
-              {indicator ? "Actualizar" : "Crear"} Indicador
+              {indicator ? "Actualizar" : "Crear"} menu-item
             </Button>
           </div>
         </form>

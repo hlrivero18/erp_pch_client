@@ -47,7 +47,7 @@ const navigationItems = [
   },
   {
     title: "Menu",
-    url: createPageUrl("Indicadores"),
+    url: createPageUrl("menu-items"),
     icon: UtensilsIcon,
     description: "Gestión de indicadores"
   },
