@@ -6,34 +6,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X, Save } from "lucide-react";
-import { createMenuItem } from "@/service/menu-items";
+import { createMenuItem, updateMenuItem } from "@/service/menu-items";
 import { useToast } from "../ui/use-toast";
 
-export default function MenuItemsForm({ indicator, onSubmit, onCancel }) {
+function toSelectAvailability(value) {
+  if (value === true || value === "activo") return "activo";
+  if (value === false || value === "inactivo") return "inactivo";
+  return undefined; // vacío → muestra placeholder
+}
+
+export default function MenuItemsForm({ indicator, onSubmit, onCancel, upsertMenuItem }) {
+
+  const getInitialFormData = (indicator) => {
+    if (indicator) {
+      return {
+        id: indicator.id ?? "",
+        name: indicator.name ?? "",
+        description: indicator.description ?? indicator.descripcion ?? "",
+        price: indicator.price ?? "",
+        isAvailable: toSelectAvailability(indicator.isAvailable),
+      };
+    }
+    return {
+      id: "",
+      name: "",
+      description: "",
+      price: "",
+      isAvailable: toSelectAvailability(true),
+    };
+  };
+
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState(indicator || {
-    name: "",
-    descripcion: "",
-    price: "",
-    createdById: "fa817517-5d80-45fd-9e9b-53c87f1fdc0d"
-    // unit: "units",
-    // custom_unit: "",
-    // frequency: "monthly",
-    // type: "performance",
-    // execution_grade: "higher_better",
-    // category: "",
-    // area: "",
-    // status: "active",
-  });
+  const [formData, setFormData] = useState(() => getInitialFormData(indicator));
 
   const resetState = () => {
-    setFormData({
-      name: "",
-      descripcion: "",
-      price: "",
-      createdById: "fa817517-5d80-45fd-9e9b-53c87f1fdc0d"
-    })
-  }
+    setFormData(getInitialFormData(null));
+  };
 
   const { toast } = useToast();
 
@@ -41,15 +49,22 @@ export default function MenuItemsForm({ indicator, onSubmit, onCancel }) {
     e.preventDefault();
     setIsLoading(true)
     try {
-      const data = await createMenuItem(formData)
+      const { data } = indicator ? await updateMenuItem(formData) : await createMenuItem(formData)
+      upsertMenuItem({
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        isAvailable: data.isAvailable
+      })
       setIsLoading(false)
       onCancel()
       resetState()
       toast({
         variant: "success",
-        title: "Menu-item creado con exito",
+        title: indicator ? `Menu-item ${data.name} actualizado con exito` : `Menu-item ${data.name} creado con exito`,
         description: `Se registro el menu-item ${formData.name}`,
-        duration: 3000
+        duration: 5000
       })
 
     } catch (e) {
@@ -118,36 +133,18 @@ export default function MenuItemsForm({ indicator, onSubmit, onCancel }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="descripcion">Descripción </Label>
+            <Label htmlFor="description">Descripción</Label>
             <Textarea
-              id="descripcion"
-              value={formData.descripcion}
-              onChange={(e) => handleChange("descripcion", e.target.value)}
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Breve descripción del menu-item"
               className="h-24"
             />
           </div>
-
           {/* Configuration */}
           {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="unit">Unidad de Medida *</Label>
-              <Select value={formData.unit} onValueChange={(value) => handleChange("unit", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione unidad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Porcentaje (%)</SelectItem>
-                  <SelectItem value="currency">Moneda ($)</SelectItem>
-                  <SelectItem value="units">Unidades</SelectItem>
-                  <SelectItem value="days">Días</SelectItem>
-                  <SelectItem value="hours">Horas</SelectItem>
-                  <SelectItem value="custom">Personalizada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {formData.unit === "custom" && (
+              {formData.unit === "custom" && (
               <div className="space-y-2">
                 <Label htmlFor="custom_unit">Unidad Personalizada</Label>
                 <Input
@@ -207,16 +204,7 @@ export default function MenuItemsForm({ indicator, onSubmit, onCancel }) {
             </div>
           </div> */}
 
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
-            {/* <div className="space-y-2">
-              <Label htmlFor="area">Área/Departamento</Label>
-              <Input
-                id="area"
-                value={formData.area}
-                onChange={(e) => handleChange("area", e.target.value)}
-                placeholder="Ej: Operaciones, Prevención"
-              />
-            </div> */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <div className="space-y-2">
               <Label htmlFor="price">Precio (ARG)</Label>
@@ -230,7 +218,22 @@ export default function MenuItemsForm({ indicator, onSubmit, onCancel }) {
                 placeholder="Ejem. 23000"
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="isAvailable">Estado</Label>
+              <Select value={formData.isAvailable} onValueChange={(value) => handleChange("isAvailable", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione el estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="activo">Activo</SelectItem>
+                  <SelectItem value="inactivo">Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+
 
           {/* <div className="space-y-2">
             <Label htmlFor="status">Estado</Label>
